@@ -21,10 +21,12 @@ void Individual::evaluateCompleteCost(const Params & params)
 			}
 			successors[chromR[r][chromR[r].size()-1]] = 0;
 			distance += params.timeCost[chromR[r][chromR[r].size()-1]][0];
-			eval.distance += distance;
+			// PT-VRP : the route is executed m = ceil(load/Q) times, which multiplies its cost and its duration
+			double m = (double)params.nbTrips(load);
+			eval.distance += m * distance;
 			eval.nbRoutes++;
-			if (load > params.vehicleCapacity) eval.capacityExcess += load - params.vehicleCapacity;
-			if (distance + service > params.durationLimit) eval.durationExcess += distance + service - params.durationLimit;
+			eval.nbTrips += (int)m;
+			if (m * (distance + service) > params.durationLimit) eval.durationExcess += m * (distance + service) - params.durationLimit;
 		}
 	}
 

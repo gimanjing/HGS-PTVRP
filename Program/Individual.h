@@ -28,10 +28,11 @@ SOFTWARE.*/
 struct EvalIndiv
 {
 	double penalizedCost = 0.;		// Penalized cost of the solution
-	int nbRoutes = 0;				// Number of routes
-	double distance = 0.;			// Total distance
-	double capacityExcess = 0.;		// Sum of excess load in all routes
-	double durationExcess = 0.;		// Sum of excess duration in all routes
+	int nbRoutes = 0;				// Number of routes (templates)
+	int nbTrips = 0;				// PT-VRP : total number of executions, sum of ceil(load/Q) over the routes
+	double distance = 0.;			// PT-VRP cost : sum over the routes of ceil(load/Q) * distance
+	double capacityExcess = 0.;		// Always 0 in the PT-VRP : the load only acts through the trip count
+	double durationExcess = 0.;		// Sum over the routes of the excess of ceil(load/Q) * duration over the horizon
 	bool isFeasible = false;		// Feasibility status of the individual
 };
 

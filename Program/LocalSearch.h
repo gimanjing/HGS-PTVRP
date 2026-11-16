@@ -35,10 +35,12 @@ struct Route
 	int whenLastModified;				// "When" this route has been last modified
 	int whenLastTestedSWAPStar;			// "When" the SWAP* moves for this route have been last tested
 	Node * depot;						// Pointer to the associated depot
-	double duration;					// Total time on the route
+	double duration;					// Total time on the route (one execution : distance + service)
+	double distance;					// Total distance of the route (one execution)
+	double service;						// Total service time on the route (one execution)
+	double cost;						// PT-VRP cost of the route : trips * distance + penalized excess of trips * duration over the horizon
 	double load;						// Total load on the route
 	double reversalDistance;			// Difference of cost if the route is reversed
-	double penalty;						// Current sum of load and duration penalties
 	double polarAngleBarycenter;		// Polar angle of the barycenter of the route
 	CircleSector sector;				// Circle sector associated to the set of customers
 };
@@ -54,6 +56,7 @@ struct Node
 	Route * route;						// Pointer towards the associated route
 	double cumulatedLoad;				// Cumulated load on this route until the customer (including itself)
 	double cumulatedTime;				// Cumulated time on this route until the customer (including itself)
+	double cumulatedService;			// Cumulated service time on this route until the customer (including itself)
 	double cumulatedReversalDistance;	// Difference of cost if the segment of route (0...cour) is reversed (useful for 2-opt moves with asymmetric problems)
 	double deltaRemoval;				// Difference of cost in the current route if the node is removed (used in SWAP*)
 };
@@ -146,8 +149,19 @@ private:
 	void setLocalVariablesRouteU(); // Initializes some local variables and distances associated to routeU to avoid always querying the same values in the distance matrix
 	void setLocalVariablesRouteV(); // Initializes some local variables and distances associated to routeV to avoid always querying the same values in the distance matrix
 
-	inline double penaltyExcessDuration(double myDuration) {return std::max<double>(0., myDuration - params.durationLimit)*penaltyDurationLS;}
-	inline double penaltyExcessLoad(double myLoad) {return std::max<double>(0., myLoad - params.vehicleCapacity)*penaltyCapacityLS;}
+	// PT-VRP cost of a route with this distance, service time and load (all for one execution) :
+	// m = ceil(load/Q) executions, cost m * distance, plus the penalized excess of m * (distance + service) over the horizon
+	inline double routeCost(double myDistance, double myService, double myLoad)
+	{
+		double m = (double)params.nbTrips(myLoad);
+		return m * myDistance + std::max<double>(0., m * (myDistance + myService) - params.durationLimit)*penaltyDurationLS;
+	}
+
+	// Cost difference of a route after a change of distance, service time and load
+	inline double deltaRoute(Route * R, double deltaDistance, double deltaService, double deltaLoad)
+	{
+		return routeCost(R->distance + deltaDistance, R->service + deltaService, R->load + deltaLoad) - R->cost;
+	}
 
 	/* RELOCATE MOVES */
 	// (Legacy notations: move1...move9 from Prins 2004)
@@ -177,7 +191,7 @@ private:
 
 	public:
 
-	// Run the local search with the specified penalty values
+	// Run the local search with the specified penalty values (the capacity penalty is unused in the PT-VRP)
 	void run(Individual & indiv, double penaltyCapacityLS, double penaltyDurationLS);
 
 	// Loading an initial solution into the local search

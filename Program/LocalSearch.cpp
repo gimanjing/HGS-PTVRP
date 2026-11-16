@@ -129,21 +129,15 @@ bool LocalSearch::move1()
 	double costSuppU = params.timeCost[nodeUPrevIndex][nodeXIndex] - params.timeCost[nodeUPrevIndex][nodeUIndex] - params.timeCost[nodeUIndex][nodeXIndex];
 	double costSuppV = params.timeCost[nodeVIndex][nodeUIndex] + params.timeCost[nodeUIndex][nodeYIndex] - params.timeCost[nodeVIndex][nodeYIndex];
 
+	// PT-VRP : exact cost difference, cost = ceil(load/Q) * distance (+ penalized horizon excess)
+	double deltaCost;
 	if (!intraRouteMove)
-	{
-		// Early move pruning to save CPU time. Guarantees that this move cannot improve without checking additional (load, duration...) constraints
-		if (costSuppU + costSuppV >= routeU->penalty + routeV->penalty) return false;
+		deltaCost = deltaRoute(routeU, costSuppU, -serviceU, -loadU)
+			+ deltaRoute(routeV, costSuppV, serviceU, loadU);
+	else
+		deltaCost = deltaRoute(routeU, costSuppU + costSuppV, 0., 0.);
 
-		costSuppU += penaltyExcessDuration(routeU->duration + costSuppU - serviceU)
-			+ penaltyExcessLoad(routeU->load - loadU)
-			- routeU->penalty;
-
-		costSuppV += penaltyExcessDuration(routeV->duration + costSuppV + serviceU)
-			+ penaltyExcessLoad(routeV->load + loadU)
-			- routeV->penalty;
-	}
-
-	if (costSuppU + costSuppV > -MY_EPSILON) return false;
+	if (deltaCost > -MY_EPSILON) return false;
 	if (nodeUIndex == nodeYIndex) return false;
 
 	insertNode(nodeU, nodeV);
@@ -159,21 +153,15 @@ bool LocalSearch::move2()
 	double costSuppU = params.timeCost[nodeUPrevIndex][nodeXNextIndex] - params.timeCost[nodeUPrevIndex][nodeUIndex] - params.timeCost[nodeXIndex][nodeXNextIndex];
 	double costSuppV = params.timeCost[nodeVIndex][nodeUIndex] + params.timeCost[nodeXIndex][nodeYIndex] - params.timeCost[nodeVIndex][nodeYIndex];
 
+	// PT-VRP : exact cost difference, cost = ceil(load/Q) * distance (+ penalized horizon excess)
+	double deltaCost;
 	if (!intraRouteMove)
-	{
-		// Early move pruning to save CPU time. Guarantees that this move cannot improve without checking additional (load, duration...) constraints
-		if (costSuppU + costSuppV >= routeU->penalty + routeV->penalty) return false;
+		deltaCost = deltaRoute(routeU, costSuppU - params.timeCost[nodeUIndex][nodeXIndex], -serviceU - serviceX, -loadU - loadX)
+			+ deltaRoute(routeV, costSuppV + params.timeCost[nodeUIndex][nodeXIndex], serviceU + serviceX, loadU + loadX);
+	else
+		deltaCost = deltaRoute(routeU, costSuppU + costSuppV, 0., 0.);
 
-		costSuppU += penaltyExcessDuration(routeU->duration + costSuppU - params.timeCost[nodeUIndex][nodeXIndex] - serviceU - serviceX)
-			+ penaltyExcessLoad(routeU->load - loadU - loadX)
-			- routeU->penalty;
-
-		costSuppV += penaltyExcessDuration(routeV->duration + costSuppV + params.timeCost[nodeUIndex][nodeXIndex] + serviceU + serviceX)
-			+ penaltyExcessLoad(routeV->load + loadU + loadX)
-			- routeV->penalty;
-	}
-
-	if (costSuppU + costSuppV > -MY_EPSILON) return false;
+	if (deltaCost > -MY_EPSILON) return false;
 	if (nodeU == nodeY || nodeV == nodeX || nodeX->isDepot) return false;
 
 	insertNode(nodeU, nodeV);
@@ -190,21 +178,15 @@ bool LocalSearch::move3()
 	double costSuppU = params.timeCost[nodeUPrevIndex][nodeXNextIndex] - params.timeCost[nodeUPrevIndex][nodeUIndex] - params.timeCost[nodeUIndex][nodeXIndex] - params.timeCost[nodeXIndex][nodeXNextIndex];
 	double costSuppV = params.timeCost[nodeVIndex][nodeXIndex] + params.timeCost[nodeXIndex][nodeUIndex] + params.timeCost[nodeUIndex][nodeYIndex] - params.timeCost[nodeVIndex][nodeYIndex];
 
+	// PT-VRP : exact cost difference, cost = ceil(load/Q) * distance (+ penalized horizon excess)
+	double deltaCost;
 	if (!intraRouteMove)
-	{
-		// Early move pruning to save CPU time. Guarantees that this move cannot improve without checking additional (load, duration...) constraints
-		if (costSuppU + costSuppV >= routeU->penalty + routeV->penalty) return false;
+		deltaCost = deltaRoute(routeU, costSuppU, -serviceU - serviceX, -loadU - loadX)
+			+ deltaRoute(routeV, costSuppV, serviceU + serviceX, loadU + loadX);
+	else
+		deltaCost = deltaRoute(routeU, costSuppU + costSuppV, 0., 0.);
 
-		costSuppU += penaltyExcessDuration(routeU->duration + costSuppU - serviceU - serviceX)
-			+ penaltyExcessLoad(routeU->load - loadU - loadX)
-			- routeU->penalty;
-
-		costSuppV += penaltyExcessDuration(routeV->duration + costSuppV + serviceU + serviceX)
-			+ penaltyExcessLoad(routeV->load + loadU + loadX)
-			- routeV->penalty;
-	}
-
-	if (costSuppU + costSuppV > -MY_EPSILON) return false;
+	if (deltaCost > -MY_EPSILON) return false;
 	if (nodeU == nodeY || nodeX == nodeV || nodeX->isDepot) return false;
 
 	insertNode(nodeX, nodeV);
@@ -221,21 +203,15 @@ bool LocalSearch::move4()
 	double costSuppU = params.timeCost[nodeUPrevIndex][nodeVIndex] + params.timeCost[nodeVIndex][nodeXIndex] - params.timeCost[nodeUPrevIndex][nodeUIndex] - params.timeCost[nodeUIndex][nodeXIndex];
 	double costSuppV = params.timeCost[nodeVPrevIndex][nodeUIndex] + params.timeCost[nodeUIndex][nodeYIndex] - params.timeCost[nodeVPrevIndex][nodeVIndex] - params.timeCost[nodeVIndex][nodeYIndex];
 
+	// PT-VRP : exact cost difference, cost = ceil(load/Q) * distance (+ penalized horizon excess)
+	double deltaCost;
 	if (!intraRouteMove)
-	{
-		// Early move pruning to save CPU time. Guarantees that this move cannot improve without checking additional (load, duration...) constraints
-		if (costSuppU + costSuppV >= routeU->penalty + routeV->penalty) return false;
+		deltaCost = deltaRoute(routeU, costSuppU, serviceV - serviceU, loadV - loadU)
+			+ deltaRoute(routeV, costSuppV, serviceU - serviceV, loadU - loadV);
+	else
+		deltaCost = deltaRoute(routeU, costSuppU + costSuppV, 0., 0.);
 
-		costSuppU += penaltyExcessDuration(routeU->duration + costSuppU + serviceV - serviceU)
-			+ penaltyExcessLoad(routeU->load + loadV - loadU)
-			- routeU->penalty;
-
-		costSuppV += penaltyExcessDuration(routeV->duration + costSuppV - serviceV + serviceU)
-			+ penaltyExcessLoad(routeV->load + loadU - loadV)
-			- routeV->penalty;
-	}
-
-	if (costSuppU + costSuppV > -MY_EPSILON) return false;
+	if (deltaCost > -MY_EPSILON) return false;
 	if (nodeUIndex == nodeVPrevIndex || nodeUIndex == nodeYIndex) return false;
 
 	swapNode(nodeU, nodeV);
@@ -251,21 +227,15 @@ bool LocalSearch::move5()
 	double costSuppU = params.timeCost[nodeUPrevIndex][nodeVIndex] + params.timeCost[nodeVIndex][nodeXNextIndex] - params.timeCost[nodeUPrevIndex][nodeUIndex] - params.timeCost[nodeXIndex][nodeXNextIndex];
 	double costSuppV = params.timeCost[nodeVPrevIndex][nodeUIndex] + params.timeCost[nodeXIndex][nodeYIndex] - params.timeCost[nodeVPrevIndex][nodeVIndex] - params.timeCost[nodeVIndex][nodeYIndex];
 
+	// PT-VRP : exact cost difference, cost = ceil(load/Q) * distance (+ penalized horizon excess)
+	double deltaCost;
 	if (!intraRouteMove)
-	{
-		// Early move pruning to save CPU time. Guarantees that this move cannot improve without checking additional (load, duration...) constraints
-		if (costSuppU + costSuppV >= routeU->penalty + routeV->penalty) return false;
+		deltaCost = deltaRoute(routeU, costSuppU - params.timeCost[nodeUIndex][nodeXIndex], serviceV - serviceU - serviceX, loadV - loadU - loadX)
+			+ deltaRoute(routeV, costSuppV + params.timeCost[nodeUIndex][nodeXIndex], serviceU + serviceX - serviceV, loadU + loadX - loadV);
+	else
+		deltaCost = deltaRoute(routeU, costSuppU + costSuppV, 0., 0.);
 
-		costSuppU += penaltyExcessDuration(routeU->duration + costSuppU - params.timeCost[nodeUIndex][nodeXIndex] + serviceV - serviceU - serviceX)
-			+ penaltyExcessLoad(routeU->load + loadV - loadU - loadX)
-			- routeU->penalty;
-
-		costSuppV += penaltyExcessDuration(routeV->duration + costSuppV + params.timeCost[nodeUIndex][nodeXIndex] - serviceV + serviceU + serviceX)
-			+ penaltyExcessLoad(routeV->load + loadU + loadX - loadV)
-			- routeV->penalty;
-	}
-
-	if (costSuppU + costSuppV > -MY_EPSILON) return false;
+	if (deltaCost > -MY_EPSILON) return false;
 	if (nodeU == nodeV->prev || nodeX == nodeV->prev || nodeU == nodeY || nodeX->isDepot) return false;
 
 	swapNode(nodeU, nodeV);
@@ -282,21 +252,15 @@ bool LocalSearch::move6()
 	double costSuppU = params.timeCost[nodeUPrevIndex][nodeVIndex] + params.timeCost[nodeYIndex][nodeXNextIndex] - params.timeCost[nodeUPrevIndex][nodeUIndex] - params.timeCost[nodeXIndex][nodeXNextIndex];
 	double costSuppV = params.timeCost[nodeVPrevIndex][nodeUIndex] + params.timeCost[nodeXIndex][nodeYNextIndex] - params.timeCost[nodeVPrevIndex][nodeVIndex] - params.timeCost[nodeYIndex][nodeYNextIndex];
 
+	// PT-VRP : exact cost difference, cost = ceil(load/Q) * distance (+ penalized horizon excess)
+	double deltaCost;
 	if (!intraRouteMove)
-	{
-		// Early move pruning to save CPU time. Guarantees that this move cannot improve without checking additional (load, duration...) constraints
-		if (costSuppU + costSuppV >= routeU->penalty + routeV->penalty) return false;
+		deltaCost = deltaRoute(routeU, costSuppU - params.timeCost[nodeUIndex][nodeXIndex] + params.timeCost[nodeVIndex][nodeYIndex], serviceV + serviceY - serviceU - serviceX, loadV + loadY - loadU - loadX)
+			+ deltaRoute(routeV, costSuppV + params.timeCost[nodeUIndex][nodeXIndex] - params.timeCost[nodeVIndex][nodeYIndex], serviceU + serviceX - serviceV - serviceY, loadU + loadX - loadV - loadY);
+	else
+		deltaCost = deltaRoute(routeU, costSuppU + costSuppV, 0., 0.);
 
-		costSuppU += penaltyExcessDuration(routeU->duration + costSuppU - params.timeCost[nodeUIndex][nodeXIndex] + params.timeCost[nodeVIndex][nodeYIndex] + serviceV + serviceY - serviceU - serviceX)
-			+ penaltyExcessLoad(routeU->load + loadV + loadY - loadU - loadX)
-			- routeU->penalty;
-
-		costSuppV += penaltyExcessDuration(routeV->duration + costSuppV + params.timeCost[nodeUIndex][nodeXIndex] - params.timeCost[nodeVIndex][nodeYIndex] - serviceV - serviceY + serviceU + serviceX)
-			+ penaltyExcessLoad(routeV->load + loadU + loadX - loadV - loadY)
-			- routeV->penalty;
-	}
-
-	if (costSuppU + costSuppV > -MY_EPSILON) return false;
+	if (deltaCost > -MY_EPSILON) return false;
 	if (nodeX->isDepot || nodeY->isDepot || nodeY == nodeU->prev || nodeU == nodeY || nodeX == nodeV || nodeV == nodeX->next) return false;
 
 	swapNode(nodeU, nodeV);
@@ -312,7 +276,8 @@ bool LocalSearch::move7()
 {
 	if (nodeU->position > nodeV->position) return false;
 
-	double cost = params.timeCost[nodeUIndex][nodeVIndex] + params.timeCost[nodeXIndex][nodeYIndex] - params.timeCost[nodeUIndex][nodeXIndex] - params.timeCost[nodeVIndex][nodeYIndex] + nodeV->cumulatedReversalDistance - nodeX->cumulatedReversalDistance;
+	double deltaDistance = params.timeCost[nodeUIndex][nodeVIndex] + params.timeCost[nodeXIndex][nodeYIndex] - params.timeCost[nodeUIndex][nodeXIndex] - params.timeCost[nodeVIndex][nodeYIndex] + nodeV->cumulatedReversalDistance - nodeX->cumulatedReversalDistance;
+	double cost = deltaRoute(routeU, deltaDistance, 0., 0.);
 
 	if (cost > -MY_EPSILON) return false;
 	if (nodeU->next == nodeV) return false;
@@ -342,18 +307,21 @@ bool LocalSearch::move7()
 
 bool LocalSearch::move8()
 {
-	double cost = params.timeCost[nodeUIndex][nodeVIndex] + params.timeCost[nodeXIndex][nodeYIndex] - params.timeCost[nodeUIndex][nodeXIndex] - params.timeCost[nodeVIndex][nodeYIndex]
-		+ nodeV->cumulatedReversalDistance + routeU->reversalDistance - nodeX->cumulatedReversalDistance
-		- routeU->penalty - routeV->penalty;
+	// First new route : (depot ... U) followed by (V ... start of routeV) reversed
+	double distU = nodeU->cumulatedTime - nodeU->cumulatedService;
+	double distV = nodeV->cumulatedTime - nodeV->cumulatedService;
+	double distance1 = distU + distV + nodeV->cumulatedReversalDistance + params.timeCost[nodeUIndex][nodeVIndex];
+	double service1 = nodeU->cumulatedService + nodeV->cumulatedService;
+	double load1 = nodeU->cumulatedLoad + nodeV->cumulatedLoad;
 
-	// Early move pruning to save CPU time. Guarantees that this move cannot improve without checking additional (load, duration...) constraints
-	if (cost >= 0) return false;
-		
-	cost += penaltyExcessDuration(nodeU->cumulatedTime + nodeV->cumulatedTime + nodeV->cumulatedReversalDistance + params.timeCost[nodeUIndex][nodeVIndex])
-		+ penaltyExcessDuration(routeU->duration - nodeU->cumulatedTime - params.timeCost[nodeUIndex][nodeXIndex] + routeU->reversalDistance - nodeX->cumulatedReversalDistance + routeV->duration - nodeV->cumulatedTime - params.timeCost[nodeVIndex][nodeYIndex] + params.timeCost[nodeXIndex][nodeYIndex])
-		+ penaltyExcessLoad(nodeU->cumulatedLoad + nodeV->cumulatedLoad)
-		+ penaltyExcessLoad(routeU->load + routeV->load - nodeU->cumulatedLoad - nodeV->cumulatedLoad);
-		
+	// Second new route : (X ... end of routeU) reversed, followed by (Y ... end of routeV)
+	double distance2 = routeU->distance - distU - params.timeCost[nodeUIndex][nodeXIndex] + routeU->reversalDistance - nodeX->cumulatedReversalDistance
+		+ routeV->distance - distV - params.timeCost[nodeVIndex][nodeYIndex] + params.timeCost[nodeXIndex][nodeYIndex];
+	double service2 = routeU->service + routeV->service - service1;
+	double load2 = routeU->load + routeV->load - load1;
+
+	double cost = routeCost(distance1, service1, load1) + routeCost(distance2, service2, load2) - routeU->cost - routeV->cost;
+
 	if (cost > -MY_EPSILON) return false;
 
 	Node * depotU = routeU->depot;
@@ -422,16 +390,20 @@ bool LocalSearch::move8()
 
 bool LocalSearch::move9()
 {
-	double cost = params.timeCost[nodeUIndex][nodeYIndex] + params.timeCost[nodeVIndex][nodeXIndex] - params.timeCost[nodeUIndex][nodeXIndex] - params.timeCost[nodeVIndex][nodeYIndex]
-		        - routeU->penalty - routeV->penalty;
+	double distU = nodeU->cumulatedTime - nodeU->cumulatedService;
+	double distV = nodeV->cumulatedTime - nodeV->cumulatedService;
 
-	// Early move pruning to save CPU time. Guarantees that this move cannot improve without checking additional (load, duration...) constraints
-	if (cost >= 0) return false;
-		
-	cost += penaltyExcessDuration(nodeU->cumulatedTime + routeV->duration - nodeV->cumulatedTime - params.timeCost[nodeVIndex][nodeYIndex] + params.timeCost[nodeUIndex][nodeYIndex])
-		+ penaltyExcessDuration(routeU->duration - nodeU->cumulatedTime - params.timeCost[nodeUIndex][nodeXIndex] + nodeV->cumulatedTime + params.timeCost[nodeVIndex][nodeXIndex])
-		+ penaltyExcessLoad(nodeU->cumulatedLoad + routeV->load - nodeV->cumulatedLoad)
-		+ penaltyExcessLoad(nodeV->cumulatedLoad + routeU->load - nodeU->cumulatedLoad);
+	// First new route : (depot ... U) followed by (Y ... end of routeV)
+	double distance1 = distU + routeV->distance - distV - params.timeCost[nodeVIndex][nodeYIndex] + params.timeCost[nodeUIndex][nodeYIndex];
+	double service1 = nodeU->cumulatedService + routeV->service - nodeV->cumulatedService;
+	double load1 = nodeU->cumulatedLoad + routeV->load - nodeV->cumulatedLoad;
+
+	// Second new route : (depot ... V) followed by (X ... end of routeU)
+	double distance2 = distV + routeU->distance - distU - params.timeCost[nodeUIndex][nodeXIndex] + params.timeCost[nodeVIndex][nodeXIndex];
+	double service2 = routeU->service + routeV->service - service1;
+	double load2 = routeU->load + routeV->load - load1;
+
+	double cost = routeCost(distance1, service1, load1) + routeCost(distance2, service2, load2) - routeU->cost - routeV->cost;
 
 	if (cost > -MY_EPSILON) return false;
 
@@ -495,11 +467,13 @@ bool LocalSearch::swapStar()
 	{
 		for (nodeV = routeV->depot->next; !nodeV->isDepot; nodeV = nodeV->next)
 		{
-			double deltaPenRouteU = penaltyExcessLoad(routeU->load + params.cli[nodeV->cour].demand - params.cli[nodeU->cour].demand) - routeU->penalty;
-			double deltaPenRouteV = penaltyExcessLoad(routeV->load + params.cli[nodeU->cour].demand - params.cli[nodeV->cour].demand) - routeV->penalty;
+			double newLoadU = routeU->load + params.cli[nodeV->cour].demand - params.cli[nodeU->cour].demand;
+			double newLoadV = routeV->load + params.cli[nodeU->cour].demand - params.cli[nodeV->cour].demand;
 
-			// Quick filter: possibly early elimination of many SWAP* due to the capacity constraints/penalties and bounds on insertion costs
-			if (deltaPenRouteU + nodeU->deltaRemoval + deltaPenRouteV + nodeV->deltaRemoval <= 0)
+			// Quick filter: optimistic cost of the two routes with the new trip counts, the removals done and the insertions for free
+			// (same assumption as the original filter: an insertion never shortens a route)
+			if ((double)params.nbTrips(newLoadU) * (routeU->distance + nodeU->deltaRemoval) + (double)params.nbTrips(newLoadV) * (routeV->distance + nodeV->deltaRemoval)
+				- routeU->cost - routeV->cost <= 0)
 			{
 				SwapStarElement mySwapStar;
 				mySwapStar.U = nodeU;
@@ -511,10 +485,11 @@ bool LocalSearch::swapStar()
 				// Evaluate best reinsertion cost of V in the route of U where U has been removed
 				double extraU = getCheapestInsertSimultRemoval(nodeV, nodeU, mySwapStar.bestPositionV);
 
-				// Evaluating final cost
-				mySwapStar.moveCost = deltaPenRouteU + nodeU->deltaRemoval + extraU + deltaPenRouteV + nodeV->deltaRemoval + extraV
-					+ penaltyExcessDuration(routeU->duration + nodeU->deltaRemoval + extraU + params.cli[nodeV->cour].serviceDuration - params.cli[nodeU->cour].serviceDuration)
-					+ penaltyExcessDuration(routeV->duration + nodeV->deltaRemoval + extraV - params.cli[nodeV->cour].serviceDuration + params.cli[nodeU->cour].serviceDuration);
+				// Evaluating final cost. For a given load and service time the route cost grows with the distance,
+				// so the cheapest insertion in distance is also the cheapest one in PT-VRP cost
+				double deltaService = params.cli[nodeV->cour].serviceDuration - params.cli[nodeU->cour].serviceDuration;
+				mySwapStar.moveCost = routeCost(routeU->distance + nodeU->deltaRemoval + extraU, routeU->service + deltaService, newLoadU) - routeU->cost
+					+ routeCost(routeV->distance + nodeV->deltaRemoval + extraV, routeV->service - deltaService, newLoadV) - routeV->cost;
 
 				if (mySwapStar.moveCost < myBestSwapStar.moveCost)
 					myBestSwapStar = mySwapStar;
@@ -531,11 +506,8 @@ bool LocalSearch::swapStar()
 		mySwapStar.bestPositionU = bestInsertClient[routeV->cour][nodeU->cour].bestLocation[0];
 		double deltaDistRouteU = params.timeCost[nodeU->prev->cour][nodeU->next->cour] - params.timeCost[nodeU->prev->cour][nodeU->cour] - params.timeCost[nodeU->cour][nodeU->next->cour];
 		double deltaDistRouteV = bestInsertClient[routeV->cour][nodeU->cour].bestCost[0];
-		mySwapStar.moveCost = deltaDistRouteU + deltaDistRouteV
-			+ penaltyExcessLoad(routeU->load - params.cli[nodeU->cour].demand) - routeU->penalty
-			+ penaltyExcessLoad(routeV->load + params.cli[nodeU->cour].demand) - routeV->penalty
-			+ penaltyExcessDuration(routeU->duration + deltaDistRouteU - params.cli[nodeU->cour].serviceDuration)
-			+ penaltyExcessDuration(routeV->duration + deltaDistRouteV + params.cli[nodeU->cour].serviceDuration);
+		mySwapStar.moveCost = deltaRoute(routeU, deltaDistRouteU, -params.cli[nodeU->cour].serviceDuration, -params.cli[nodeU->cour].demand)
+			+ deltaRoute(routeV, deltaDistRouteV, params.cli[nodeU->cour].serviceDuration, params.cli[nodeU->cour].demand);
 
 		if (mySwapStar.moveCost < myBestSwapStar.moveCost)
 			myBestSwapStar = mySwapStar;
@@ -549,11 +521,8 @@ bool LocalSearch::swapStar()
 		mySwapStar.bestPositionV = bestInsertClient[routeU->cour][nodeV->cour].bestLocation[0];
 		double deltaDistRouteU = bestInsertClient[routeU->cour][nodeV->cour].bestCost[0];
 		double deltaDistRouteV = params.timeCost[nodeV->prev->cour][nodeV->next->cour] - params.timeCost[nodeV->prev->cour][nodeV->cour] - params.timeCost[nodeV->cour][nodeV->next->cour];
-		mySwapStar.moveCost = deltaDistRouteU + deltaDistRouteV
-			+ penaltyExcessLoad(routeU->load + params.cli[nodeV->cour].demand) - routeU->penalty
-			+ penaltyExcessLoad(routeV->load - params.cli[nodeV->cour].demand) - routeV->penalty
-			+ penaltyExcessDuration(routeU->duration + deltaDistRouteU + params.cli[nodeV->cour].serviceDuration)
-			+ penaltyExcessDuration(routeV->duration + deltaDistRouteV - params.cli[nodeV->cour].serviceDuration);
+		mySwapStar.moveCost = deltaRoute(routeU, deltaDistRouteU, params.cli[nodeV->cour].serviceDuration, params.cli[nodeV->cour].demand)
+			+ deltaRoute(routeV, deltaDistRouteV, -params.cli[nodeV->cour].serviceDuration, -params.cli[nodeV->cour].demand);
 
 		if (mySwapStar.moveCost < myBestSwapStar.moveCost)
 			myBestSwapStar = mySwapStar;
@@ -664,6 +633,7 @@ void LocalSearch::updateRouteData(Route * myRoute)
 	int myplace = 0;
 	double myload = 0.;
 	double mytime = 0.;
+	double myservice = 0.;
 	double myReversalDistance = 0.;
 	double cumulatedX = 0.;
 	double cumulatedY = 0.;
@@ -672,6 +642,7 @@ void LocalSearch::updateRouteData(Route * myRoute)
 	mynode->position = 0;
 	mynode->cumulatedLoad = 0.;
 	mynode->cumulatedTime = 0.;
+	mynode->cumulatedService = 0.;
 	mynode->cumulatedReversalDistance = 0.;
 
 	bool firstIt = true;
@@ -684,7 +655,9 @@ void LocalSearch::updateRouteData(Route * myRoute)
 		mytime += params.timeCost[mynode->prev->cour][mynode->cour] + params.cli[mynode->cour].serviceDuration;
 		myReversalDistance += params.timeCost[mynode->cour][mynode->prev->cour] - params.timeCost[mynode->prev->cour][mynode->cour] ;
 		mynode->cumulatedLoad = myload;
+		myservice += params.cli[mynode->cour].serviceDuration;
 		mynode->cumulatedTime = mytime;
+		mynode->cumulatedService = myservice;
 		mynode->cumulatedReversalDistance = myReversalDistance;
 		if (!mynode->isDepot)
 		{
@@ -698,7 +671,9 @@ void LocalSearch::updateRouteData(Route * myRoute)
 
 	myRoute->duration = mytime;
 	myRoute->load = myload;
-	myRoute->penalty = penaltyExcessDuration(mytime) + penaltyExcessLoad(myload);
+	myRoute->service = myservice;
+	myRoute->distance = mytime - myservice;
+	myRoute->cost = routeCost(myRoute->distance, myservice, myload);
 	myRoute->nbCustomers = myplace-1;
 	myRoute->reversalDistance = myReversalDistance;
 	// Remember "when" this route has been last modified (will be used to filter unnecessary move evaluations)

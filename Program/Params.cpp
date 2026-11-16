@@ -22,6 +22,9 @@ Params::Params(
 	// This marks the starting time of the algorithm
 	startTime = clock();
 
+	// PT-VRP : the duration limit is the horizon T_H. Without one, no template is ever too long
+	if (!isDurationConstraint) this->durationLimit = 1.e30;
+
 	nbClients = (int)demands.size() - 1; // Need to substract the depot from the number of nodes
 	totalDemand = 0.;
 	maxDemand = 0.;
@@ -109,7 +112,8 @@ Params::Params(
 	if (maxDemand < 0.1 || maxDemand > 100000)
 		throw std::string(
 			"The demand quantities are of very small or large scale. This could impact numerical stability. Please rescale the dataset and run again.");
-	if (nbVehicles < std::ceil(totalDemand / vehicleCapacity))
+	// PT-VRP : a template can be executed several times, so the bin packing bound is no longer a requirement on the fleet
+	if (nbVehicles < 1)
 		throw std::string("Fleet size is insufficient to service the considered clients.");
 
 	// A reasonable scale for the initial values of the penalties

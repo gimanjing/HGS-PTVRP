@@ -74,6 +74,13 @@ public:
 	int nbVehicles ;										// Number of vehicles
 	double durationLimit;									// Route duration limit
 	double vehicleCapacity;									// Capacity limit
+	// PT-VRP : number of executions of a template carrying this load, m = ceil(load / Q), at least 1
+	inline int nbTrips(double load) const
+	{
+		int m = (int)std::ceil(load / vehicleCapacity - 1.e-9);
+		return (m < 1) ? 1 : m;
+	}
+
 	double totalDemand ;									// Total demand required by the clients
 	double maxDemand;										// Maximum demand of a client
 	double maxDist;											// Maximum distance between two clients

@@ -38,6 +38,7 @@ void Genetic::run()
 		}
 	}
 	if (params.verbose) std::cout << "----- GENETIC ALGORITHM FINISHED AFTER " << nbIter << " ITERATIONS. TIME SPENT: " << (double)(clock() - params.startTime) / (double)CLOCKS_PER_SEC << std::endl;
+	if (params.verbose) std::cout << "----- PT-VRP SPLIT CALLS: " << split.nbCallsSimple << " UNLIMITED FLEET, " << split.nbCallsLF << " LIMITED FLEET, " << split.nbCallsLFSoft << " PENALIZED HORIZON. BLOCKED EVICTIONS: " << split.nbBlockedPops << std::endl;
 }
 
 void Genetic::crossoverOX(Individual & result, const Individual & parent1, const Individual & parent2)
