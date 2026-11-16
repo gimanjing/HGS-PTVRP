@@ -52,6 +52,9 @@ class Population
 
    public:
 
+   // Time stamps and costs of the successive best solutions
+   const std::vector<std::pair<clock_t, double>> & getSearchProgress() const { return searchProgress; }
+
    // Creates an initial population of individuals
    void generatePopulation();
 

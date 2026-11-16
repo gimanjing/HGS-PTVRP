@@ -129,6 +129,8 @@ private:
 	std::vector < Node > depotsEnd;				// Duplicate of the depots to mark the end of the routes
 	std::vector < Route > routes;				// Elements representing routes
 	std::vector < std::vector < ThreeBestInsert > > bestInsertClient;   // (SWAP*) For each route and node, storing the cheapest insertion cost 
+	std::vector < char > insertionsUsed;								// (SWAP*) Rows of bestInsertClient written since the last load
+	std::vector < int > usedRoutes;										// (SWAP*) Routes in use, in the order of orderRoutes
 
 	/* TEMPORARY VARIABLES USED IN THE LOCAL SEARCH LOOPS */
 	// nodeUPrev -> nodeU -> nodeX -> nodeXNext

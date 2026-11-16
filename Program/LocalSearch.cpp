@@ -73,14 +73,20 @@ void LocalSearch::run(Individual & indiv, double penaltyCapacityLS, double penal
 		if (params.ap.useSwapStar == 1 && params.areCoordinatesProvided)
 		{
 			/* (SWAP*) MOVES LIMITED TO ROUTE PAIRS WHOSE CIRCLE SECTORS OVERLAP */
-			for (int rU = 0; rU < params.nbVehicles; rU++)
+			// PT-VRP : the fleet is as large as the number of clients and most routes are empty. SWAP* never fills
+			// an empty route, so only the routes that are in use at this point are enumerated (same order as before)
+			usedRoutes.clear();
+			for (int r = 0; r < params.nbVehicles; r++)
+				if (routes[orderRoutes[r]].nbCustomers > 0) usedRoutes.push_back(orderRoutes[r]);
+
+			for (int rU = 0; rU < (int)usedRoutes.size(); rU++)
 			{
-				routeU = &routes[orderRoutes[rU]];
+				routeU = &routes[usedRoutes[rU]];
 				int lastTestSWAPStarRouteU = routeU->whenLastTestedSWAPStar;
 				routeU->whenLastTestedSWAPStar = nbMoves;
-				for (int rV = 0; rV < params.nbVehicles; rV++)
+				for (int rV = 0; rV < (int)usedRoutes.size(); rV++)
 				{
-					routeV = &routes[orderRoutes[rV]];
+					routeV = &routes[usedRoutes[rV]];
 					if (routeU->nbCustomers > 0 && routeV->nbCustomers > 0 && routeU->cour < routeV->cour
 						&& (loopID == 0 || std::max<int>(routeU->whenLastModified, routeV->whenLastModified)
 							> lastTestSWAPStarRouteU))
@@ -575,6 +581,7 @@ double LocalSearch::getCheapestInsertSimultRemoval(Node * U, Node * V, Node *& b
 
 void LocalSearch::preprocessInsertions(Route * R1, Route * R2)
 {
+	insertionsUsed[R2->cour] = 1;
 	for (Node * U = R1->depot->next; !U->isDepot; U = U->next)
 	{
 		// Performs the preprocessing
@@ -726,8 +733,12 @@ void LocalSearch::loadIndividual(const Individual & indiv)
 		}
 		updateRouteData(&routes[r]);
 		routes[r].whenLastTestedSWAPStar = -1;
-		for (int i = 1; i <= params.nbClients; i++) // Initializing memory structures
-			bestInsertClient[r][i].whenLastCalculated = -1;
+		if (insertionsUsed[r]) // Initializing memory structures (only the rows written since the last load)
+		{
+			for (int i = 1; i <= params.nbClients; i++)
+				bestInsertClient[r][i].whenLastCalculated = -1;
+			insertionsUsed[r] = 0;
+		}
 	}
 
 	for (int i = 1; i <= params.nbClients; i++) // Initializing memory structures
@@ -765,6 +776,7 @@ LocalSearch::LocalSearch(Params & params) : params (params)
 	depots = std::vector < Node >(params.nbVehicles);
 	depotsEnd = std::vector < Node >(params.nbVehicles);
 	bestInsertClient = std::vector < std::vector <ThreeBestInsert> >(params.nbVehicles, std::vector <ThreeBestInsert>(params.nbClients + 1));
+	insertionsUsed = std::vector <char>(params.nbVehicles, 1); // every row is initialized by the first load
 
 	for (int i = 0; i <= params.nbClients; i++) 
 	{ 

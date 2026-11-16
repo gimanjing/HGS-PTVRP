@@ -30,6 +30,8 @@ class Genetic
 {
 public:
 
+	int nbIterTotal = 0;			// Number of iterations done by the last call to run()
+
 	Params & params;				// Problem parameters
 	Split split;					// Split algorithm
 	LocalSearch localSearch;		// Local Search structure

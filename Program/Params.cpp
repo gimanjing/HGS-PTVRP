@@ -65,9 +65,11 @@ Params::Params(
 	// Default initialization if the number of vehicles has not been provided by the user
 	if (nbVehicles == INT_MAX)
 	{
-		nbVehicles = (int)std::ceil(1.3*totalDemand/vehicleCapacity) + 3;  // Safety margin: 30% + 3 more vehicles than the trivial bin packing LB
+		// PT-VRP : the fleet does not constrain the solution. A solution has at most one template per client,
+		// so a fleet of nbClients is the same as an unlimited one
+		nbVehicles = nbClients;
 		if (verbose) 
-			std::cout << "----- FLEET SIZE WAS NOT SPECIFIED: DEFAULT INITIALIZATION TO " << nbVehicles << " VEHICLES" << std::endl;
+			std::cout << "----- FLEET SIZE WAS NOT SPECIFIED: UNLIMITED (AT MOST " << nbVehicles << " TEMPLATES)" << std::endl;
 	}
 	else
 	{
@@ -76,6 +78,25 @@ Params::Params(
 	}
 
 	// Calculation of the maximum distance
+	// PT-VRP : every client must fit in the horizon when served alone by a dedicated template,
+	// ceil(q_i / Q) * (T_0i + s_i + T_i0) <= T_H, since otherwise the instance has no feasible solution
+	if (isDurationConstraint)
+	{
+		std::string offenders;
+		int nbOffenders = 0;
+		for (int i = 1; i <= nbClients; i++)
+		{
+			double alone = (double)nbTrips(cli[i].demand) * (timeCost[0][i] + cli[i].serviceDuration + timeCost[i][0]);
+			if (alone > this->durationLimit + 1.e-6)
+			{
+				if (nbOffenders < 20) offenders += " " + std::to_string(i);
+				nbOffenders++;
+			}
+		}
+		if (nbOffenders > 0)
+			throw std::string("INFEASIBLE INSTANCE: " + std::to_string(nbOffenders) + " client(s) cannot be served within the horizon even by a dedicated template. Clients (first 20):" + offenders);
+	}
+
 	maxDist = 0.;
 	for (int i = 0; i <= nbClients; i++)
 		for (int j = 0; j <= nbClients; j++)

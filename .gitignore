@@ -52,3 +52,6 @@ cmake-build-*
 *.out
 *.app
 
+
+# Batch results
+Results/

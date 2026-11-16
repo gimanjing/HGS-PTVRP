@@ -34,6 +34,7 @@ public:
 	AlgorithmParameters ap = default_algorithm_parameters();
 
 	int nbVeh		 = INT_MAX;		// Number of vehicles. Default value: infinity
+	std::string pathResults = "";	// Results file (one line appended per run). Default value: none
 	std::string pathInstance;		// Instance path
 	std::string pathSolution;		// Solution path
 	bool verbose     = true;
@@ -61,6 +62,8 @@ public:
 					ap.seed    = atoi(argv[i+1]);
 				else if (std::string(argv[i]) == "-veh")
 					nbVeh = atoi(argv[i+1]);
+				else if (std::string(argv[i]) == "-csv")
+					pathResults = std::string(argv[i+1]);
 				else if (std::string(argv[i]) == "-round")
 					isRoundingInteger = atoi(argv[i+1]);
 				else if (std::string(argv[i]) == "-log")
@@ -99,11 +102,12 @@ public:
 	{
 		std::cout << std::endl;
 		std::cout << "-------------------------------------------------- HGS-CVRP algorithm (2020) ---------------------------------------------------" << std::endl;
-		std::cout << "Call with: ./hgs instancePath solPath [-it nbIter] [-t myCPUtime] [-seed mySeed] [-veh nbVehicles] [-log verbose]               " << std::endl;
+		std::cout << "Call with: ./hgs instancePath solPath [-it nbIter] [-t myCPUtime] [-seed mySeed] [-veh nbVehicles] [-csv results] [-log verbose]               " << std::endl;
 		std::cout << "[-it <int>] sets a maximum number of iterations without improvement. Defaults to 20,000                                         " << std::endl;
 		std::cout << "[-t <double>] sets a time limit in seconds. If this parameter is set the code will be run iteratively until the time limit      " << std::endl;
 		std::cout << "[-seed <int>] sets a fixed seed. Defaults to 0                                                                                  " << std::endl;
-		std::cout << "[-veh <int>] sets a prescribed fleet size. Otherwise a reasonable UB on the the fleet size is calculated                        " << std::endl;
+		std::cout << "[-veh <int>] sets a maximum number of templates. Otherwise the fleet is unlimited                                               " << std::endl;
+		std::cout << "[-csv <path>] appends one line with the results of the run to this file (a header is written if the file is new)                " << std::endl;
 		std::cout << "[-round <bool>] rounding the distance to the nearest integer or not. It can be 0 (not rounding) or 1 (rounding). Defaults to 1. " << std::endl;
 		std::cout << "[-log <bool>] sets the verbose level of the algorithm log. It can be 0 or 1. Defaults to 1.                                     " << std::endl;
 		std::cout << std::endl;
