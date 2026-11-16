@@ -23,7 +23,10 @@ InstanceCVRPLIB::InstanceCVRPLIB(std::string pathToInstance, bool isRoundingInte
 			if (content == "DIMENSION") { inputFile >> content2 >> nbClients; nbClients--; } // Need to substract the depot from the number of nodes
 			else if (content == "EDGE_WEIGHT_TYPE")	inputFile >> content2 >> content3;
 			else if (content == "CAPACITY")	inputFile >> content2 >> vehicleCapacity;
-			else if (content == "DISTANCE") { inputFile >> content2 >> durationLimit; isDurationConstraint = true; }
+			// PT-VRP : the only time limit is the horizon T_H, which bounds trips * duration of every route.
+			// The per-trip route limit of the CVRPLIB files (DISTANCE) is read and not applied.
+			else if (content == "DISTANCE") { double unusedRouteLimit; inputFile >> content2 >> unusedRouteLimit; }
+			else if (content == "MAX_ROUTE" || content == "HORIZON") inputFile >> content2 >> durationLimit;
 			else if (content == "SERVICE_TIME")	inputFile >> content2 >> serviceTimeData;
 			else throw std::string("Unexpected data in input file: " + content);
 		}
